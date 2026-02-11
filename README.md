@@ -1,16 +1,46 @@
-# 🚀 Crypto Monitor - Real-time Trading Data
+# 🚀 Crypto Monitor - Real-time Trading Data & Address Monitoring
 
-实时监控 BSC 和 Solana 链上的代币交易数据，追踪最近 30 分钟内交易量和交易笔数最高的 Top 10 代币。
+实时监控 BSC 和 Solana 链上的代币交易数据和特定地址的交易活动。
 
 ## 📋 功能特性
 
+### 📊 代币排名监控
 - ✅ 实时监控 BSC 和 Solana 两条链
 - ✅ 追踪最近 30 分钟的交易数据
 - ✅ 按交易量或交易笔数排序
 - ✅ WebSocket 实时推送更新（每 5 秒）
+- ✅ 显示 Top 10 热门代币
+
+### 📍 地址交易监控
+- ✅ 监控特定钱包地址的所有交易
+- ✅ 支持 BNB/SOL 和所有代币转账
+- ✅ 自动识别 DEX 交易
+- ✅ 实时推送新交易
+- ✅ 支持同时监控多个地址
+- ✅ 查看交易详情和区块链浏览器链接
+
+### 💱 代币交易 (全面升级)
+
+**核心交易功能**:
+- ✅ BSC 链交易（通过 PancakeSwap）
+- ✅ Solana 链交易（通过 Jupiter 聚合器）
+- ✅ 支持所有主流代币（BNB, SOL, USDT, USDC等）
+- ✅ 实时价格报价和最优路由
+- ✅ 可调滑点设置 (0.1% - 3%)
+- ✅ MetaMask & Phantom 钱包集成
+- ✅ 自动获取余额和授权
+
+**增强功能**:
+- ✅ 交易历史记录（本地存储）
+- ✅ 实时价格图表 (1H, 4H, 24H, 7D)
+- ✅ 路由信息和价格影响显示
+- ✅ 限价单功能 (Beta)
+- ✅ 多链无缝切换
+
+### 🎨 通用特性
 - ✅ 美观的响应式 UI 界面
 - ✅ 支持 Redis 持久化（可选）
-- ✅ 完全免费方案（使用 DEXScreener API）
+- ✅ 完全免费方案（使用免费 API）
 
 ## 🏗️ 技术栈
 
@@ -24,30 +54,105 @@
 ### 前端
 - React 18
 - Socket.io-client
+- Ethers.js (BSC 交易)
+- @solana/web3.js (Solana 交易)
 - CSS3 (渐变背景 + 模糊效果)
 
 ## 📦 项目结构
 
 ```
 crypto-monitor/
-├── backend/                 # 后端服务
-│   ├── server.js           # 主服务器文件
+├── backend/                      # 后端服务
+│   ├── server.js                # 主服务器文件
 │   ├── services/
-│   │   └── dexscreener.js  # DEXScreener API 集成
+│   │   ├── dexscreener.js      # DEXScreener API 集成
+│   │   ├── addressMonitor.js   # 地址监控核心服务
+│   │   ├── bscMonitor.js       # BSC 链监控
+│   │   └── solanaMonitor.js    # Solana 链监控
 │   ├── utils/
-│   │   └── redis.js        # Redis 工具类
+│   │   └── redis.js            # Redis 工具类
 │   ├── package.json
 │   └── .env.example
 │
-└── frontend/               # 前端应用
+└── frontend/                          # 前端应用
     ├── src/
-    │   ├── App.js         # 主应用组件
-    │   ├── components/
-    │   │   └── TokenList.js  # 代币列表组件
-    │   └── index.js
+    │   ├── App.js                    # 主应用组件
+    │   ├── pages/
+    │   │   ├── AddressMonitor.js    # 地址监控页面
+    │   │   └── SwapPageEnhanced.js  # 增强版交易页面
+    │   ├── hooks/
+    │   │   ├── useWallet.js         # BSC钱包Hook (MetaMask)
+    │   │   └── useSolanaWallet.js   # Solana钱包Hook (Phantom)
+    │   ├── services/
+    │   │   └── jupiterService.js    # Jupiter聚合交易服务
+    │   ├── utils/
+    │   │   └── tokens.js            # 代币配置和合约ABI
+    │   └── components/
+    │       ├── TokenList.js         # 代币列表组件
+    │       ├── TransactionHistory.js # 交易历史组件
+    │       ├── PriceChart.js        # 价格图表组件
+    │       └── LimitOrder.js        # 限价单组件
     ├── package.json
     └── .env.example
 ```
+
+## 💱 代币交易功能
+
+**支持双链**: BSC (MetaMask) 和 Solana (Phantom)
+
+📖 **完整使用指南**:
+- [SWAP_GUIDE.md](SWAP_GUIDE.md) - 基础功能
+- [SWAP_GUIDE_NEW_FEATURES.md](SWAP_GUIDE_NEW_FEATURES.md) - 新增功能详解
+
+### 快速开始
+
+**BSC 交易**:
+1. 安装 MetaMask: https://metamask.io/
+2. 添加 BSC 网络（应用自动提示）
+3. 充值 BNB (Gas 费约 $0.3-0.6)
+4. 点击 "💱 Swap" → "BSC (PancakeSwap)"
+
+**Solana 交易**:
+1. 安装 Phantom: https://phantom.app/
+2. 创建或导入钱包
+3. 充值 SOL (Gas 费约 $0.00025)
+4. 点击 "💱 Swap" → "Solana (Jupiter)"
+
+### 核心功能
+
+**BSC**:
+- BNB ⇄ 任意 BEP20 代币
+- 通过 PancakeSwap Router V2
+- 主流 DEX: PancakeSwap, BiSwap
+
+**Solana**:
+- SOL ⇄ 任意 SPL 代币
+- 通过 Jupiter Aggregator V6
+- 聚合 20+ DEX 获得最优价格
+
+### 增强功能
+
+- 📜 **交易历史**: 自动保存最近 50 笔交易
+- 📊 **价格图表**: 多时间范围价格走势 (1H-7D)
+- 🔀 **智能路由**: 显示最佳交易路径
+- 📋 **限价单**: 设置目标价格自动执行 (Beta)
+- ⚡ **极速切换**: BSC 和 Solana 一键切换
+
+## 📍 地址监控功能
+
+**重要**: 使用地址监控功能需要配置 BscScan API Key（免费）
+
+📖 **详细使用指南**: [ADDRESS_MONITOR_GUIDE.md](ADDRESS_MONITOR_GUIDE.md)
+
+### 快速配置
+
+1. 注册免费 BscScan API: https://bscscan.com/myapikey
+2. 在 `backend/.env` 中配置:
+   ```env
+   BSCSCAN_API_KEY=你的API_KEY
+   ```
+3. 重启后端服务
+4. 访问前端，点击 "📍 Address Monitor" 开始监控
 
 ## 🚀 快速开始
 
@@ -56,6 +161,7 @@ crypto-monitor/
 - Node.js >= 16.x
 - npm 或 yarn
 - Redis (可选，不安装会使用内存缓存)
+- BscScan API Key (可选，用于地址监控功能)
 
 ### 1. 安装依赖
 
@@ -79,11 +185,15 @@ cd backend
 cp .env.example .env
 ```
 
-编辑 `.env` 文件（可选）:
+编辑 `.env` 文件:
 ```env
 PORT=5000
 FRONTEND_URL=http://localhost:3000
 REDIS_URL=redis://localhost:6379  # 可选，没有 Redis 会使用内存缓存
+
+# BscScan API Key (用于地址监控功能)
+# 免费注册: https://bscscan.com/myapikey
+BSCSCAN_API_KEY=YourApiKeyToken  # 替换为你的 API Key
 ```
 
 #### 前端配置

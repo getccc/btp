@@ -1,0 +1,133 @@
+.price-chart-container {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.chart-info {
+  flex: 1;
+}
+
+.pair-name {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.price-info {
+  display: flex;
+  align-items: baseline;
+  gap: 0.8rem;
+}
+
+.current-price {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.price-change {
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 8px;
+}
+
+.price-change.positive {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.2);
+}
+
+.price-change.negative {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.time-range-selector {
+  display: flex;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.3rem;
+  border-radius: 8px;
+}
+
+.range-btn {
+  padding: 0.4rem 0.8rem;
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  opacity: 0.6;
+}
+
+.range-btn:hover {
+  opacity: 0.8;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.range-btn.active {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.chart-canvas-wrapper {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  margin-bottom: 0.8rem;
+}
+
+.price-canvas {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+}
+
+.chart-footer {
+  text-align: center;
+  opacity: 0.6;
+  font-size: 0.85rem;
+}
+
+.chart-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .chart-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .time-range-selector {
+    width: 100%;
+  }
+
+  .range-btn {
+    flex: 1;
+  }
+
+  .current-price {
+    font-size: 1.3rem;
+  }
+
+  .chart-canvas-wrapper {
+    height: 150px;
+  }
+}
