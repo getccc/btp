@@ -1,0 +1,10 @@
+from fastapi import APIRouter
+
+from app.api.config_routes import router as config_router
+from app.api.system_routes import router as system_router
+from app.api.ws import router as ws_router
+
+api_router = APIRouter()
+api_router.include_router(config_router)
+api_router.include_router(system_router)
+api_router.include_router(ws_router)
