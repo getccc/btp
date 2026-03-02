@@ -53,3 +53,31 @@ export interface HealthResponse {
   redis: string
   timestamp: string
 }
+
+export interface CollectorStatus {
+  name: string
+  status: string
+  error: string
+  last_run: string
+}
+
+export interface KolTweet {
+  id: number
+  tweet_id: string
+  username: string
+  content: string
+  tweet_time: string
+  is_analyzed: boolean
+}
+
+export interface OnchainEvent {
+  id: number
+  chain: string
+  event_type: string
+  wallet_address: string
+  from_token: string
+  to_token: string
+  from_amount: number
+  to_amount: number
+  event_time: string
+}
