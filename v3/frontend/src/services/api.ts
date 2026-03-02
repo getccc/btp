@@ -5,6 +5,9 @@ import type {
   TelegramGroupConfig,
   SystemConfigItem,
   HealthResponse,
+  CollectorStatus,
+  KolTweet,
+  OnchainEvent,
 } from './types'
 
 const api = axios.create({
@@ -97,5 +100,24 @@ export async function updateSystemConfig(key: string, value: any): Promise<Syste
 
 export async function getHealth(): Promise<HealthResponse> {
   const { data } = await api.get('/api/system/health')
+  return data
+}
+
+// ── Collectors ───────────────────────────────────────
+
+export async function getCollectors(): Promise<CollectorStatus[]> {
+  const { data } = await api.get('/api/system/collectors')
+  return data
+}
+
+// ── Signals ─────────────────────────────────────────
+
+export async function getTweets(): Promise<KolTweet[]> {
+  const { data } = await api.get('/api/signals/tweets')
+  return data
+}
+
+export async function getOnchainEvents(): Promise<OnchainEvent[]> {
+  const { data } = await api.get('/api/signals/onchain')
   return data
 }

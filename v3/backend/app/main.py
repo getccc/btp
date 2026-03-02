@@ -8,6 +8,7 @@ from sqlalchemy import select
 from app.api.router import api_router
 from app.config import settings
 from app.infra.redis_client import close_redis, get_redis
+from app.infra.scheduler import collector_manager
 from app.models.base import async_session_factory
 from app.models.config import SystemConfig
 from app.utils.logger import get_logger, setup_logging
@@ -102,10 +103,18 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception as exc:
         log.error("startup.seed_failed", error=str(exc))
 
+    # Start all collectors
+    try:
+        await collector_manager.start_all()
+        log.info("startup.collectors_started")
+    except Exception as exc:
+        log.error("startup.collectors_failed", error=str(exc))
+
     log.info("startup.complete")
     yield
 
     # Shutdown
+    await collector_manager.stop_all()
     await close_redis()
     log.info("shutdown.complete")
 

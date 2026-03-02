@@ -42,3 +42,16 @@ async def health_check() -> dict:
         log.error("health_check.redis_failed", error=str(exc))
 
     return result
+
+
+@router.get("/collectors")
+async def collector_statuses() -> list[dict]:
+    """Return current status of all collectors from Redis."""
+    redis = await get_redis()
+    keys = await redis.keys("collector:status:*")
+    statuses: list[dict] = []
+    for key in sorted(keys):
+        name = key.split(":")[-1]
+        data = await redis.hgetall(key)
+        statuses.append({"name": name, **data})
+    return statuses
