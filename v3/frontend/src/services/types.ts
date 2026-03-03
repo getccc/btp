@@ -81,3 +81,14 @@ export interface OnchainEvent {
   to_amount: number
   event_time: string
 }
+
+export interface OpportunityScore {
+  id: number
+  token_symbol: string
+  chain: string
+  total_score: number
+  direction: string
+  regime: string
+  reasoning: string | null
+  scored_at: string
+}

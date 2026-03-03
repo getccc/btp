@@ -13,6 +13,7 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { getTweets, getOnchainEvents } from '../services/api';
 import type { KolTweet, OnchainEvent } from '../services/types';
+import { wsService } from '../services/ws';
 
 dayjs.extend(relativeTime);
 
@@ -262,6 +263,22 @@ export default function SignalFeed() {
     }, 10000);
     return () => clearInterval(interval);
   }, [fetchTweets, fetchEvents]);
+
+  // Listen to real-time WS events
+  useEffect(() => {
+    const offTweet = wsService.on('new_tweet', (data: KolTweet) => {
+      setTweets((prev) => [data, ...prev]);
+      setLoadingTweets(false);
+    });
+    const offOnchain = wsService.on('new_onchain', (data: OnchainEvent) => {
+      setEvents((prev) => [data, ...prev]);
+      setLoadingEvents(false);
+    });
+    return () => {
+      offTweet();
+      offOnchain();
+    };
+  }, []);
 
   const tabItems = [
     {

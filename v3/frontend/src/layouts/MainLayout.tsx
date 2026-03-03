@@ -12,6 +12,7 @@ import {
   ToolOutlined,
 } from '@ant-design/icons';
 import { getHealth } from '../services/api';
+import { wsService } from '../services/ws';
 
 const { Sider, Header, Content } = Layout;
 const { Text } = Typography;
@@ -65,6 +66,11 @@ export default function MainLayout() {
       mounted = false;
       clearInterval(interval);
     };
+  }, []);
+
+  useEffect(() => {
+    wsService.connect();
+    return () => wsService.disconnect();
   }, []);
 
   // Determine which menu keys to highlight

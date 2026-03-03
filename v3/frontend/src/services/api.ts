@@ -8,6 +8,7 @@ import type {
   CollectorStatus,
   KolTweet,
   OnchainEvent,
+  OpportunityScore,
 } from './types'
 
 const api = axios.create({
@@ -119,5 +120,17 @@ export async function getTweets(): Promise<KolTweet[]> {
 
 export async function getOnchainEvents(): Promise<OnchainEvent[]> {
   const { data } = await api.get('/api/signals/onchain')
+  return data
+}
+
+// ── Analysis / Scores ────────────────────────────────
+
+export async function getScores(): Promise<OpportunityScore[]> {
+  const { data } = await api.get('/api/analysis/scores')
+  return data
+}
+
+export async function getTokenScores(token: string): Promise<OpportunityScore[]> {
+  const { data } = await api.get(`/api/analysis/scores/${token}`)
   return data
 }

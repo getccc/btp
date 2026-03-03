@@ -12,6 +12,7 @@ import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { getHealth, getCollectors } from '../services/api'
 import type { HealthResponse, CollectorStatus } from '../services/types'
+import { wsService } from '../services/ws'
 
 dayjs.extend(relativeTime)
 
@@ -73,6 +74,22 @@ export default function Dashboard() {
     const interval = setInterval(fetchData, 5000)
     return () => clearInterval(interval)
   }, [fetchData])
+
+  // Listen to real-time WS events
+  useEffect(() => {
+    const offHealth = wsService.on('health_update', (data: HealthResponse) => {
+      setHealth(data)
+      setError(false)
+    })
+    const offCollectors = wsService.on('collector_update', (data: CollectorStatus[]) => {
+      setCollectors(data)
+      setLoading(false)
+    })
+    return () => {
+      offHealth()
+      offCollectors()
+    }
+  }, [])
 
   const runningCount = collectors.filter((c) => c.status === 'running').length
   const totalCount = collectors.length
