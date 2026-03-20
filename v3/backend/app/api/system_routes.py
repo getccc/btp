@@ -4,6 +4,11 @@ from fastapi import APIRouter
 from sqlalchemy import text
 
 from app.models.base import async_session_factory
+from app.infra.realtime import (
+    broadcast_collector_update,
+    broadcast_health_update,
+    get_collector_statuses_snapshot,
+)
 from app.infra.redis_client import get_redis
 from app.utils.logger import get_logger
 
@@ -41,17 +46,13 @@ async def health_check() -> dict:
         result["status"] = "degraded"
         log.error("health_check.redis_failed", error=str(exc))
 
+    await broadcast_health_update(result)
     return result
 
 
 @router.get("/collectors")
 async def collector_statuses() -> list[dict]:
     """Return current status of all collectors from Redis."""
-    redis = await get_redis()
-    keys = await redis.keys("collector:status:*")
-    statuses: list[dict] = []
-    for key in sorted(keys):
-        name = key.split(":")[-1]
-        data = await redis.hgetall(key)
-        statuses.append({"name": name, **data})
+    statuses = await get_collector_statuses_snapshot()
+    await broadcast_collector_update()
     return statuses

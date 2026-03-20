@@ -4,6 +4,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql+asyncpg://signal:signal_pass@localhost:5432/signal_platform"
     REDIS_URL: str = "redis://localhost:6379/0"
+    ADMIN_API_KEY: str = ""
     DEEPSEEK_API_KEY: str = ""
     TG_API_ID: int = 0
     TG_API_HASH: str = ""
@@ -13,7 +14,7 @@ class Settings(BaseSettings):
     X_ACCOUNTS: str = "[]"
     BSC_API_KEYS: str = "[]"
     SOLANA_API_KEYS: str = "[]"
-    FRONTEND_URL: str = "http://localhost:3000"
+    FRONTEND_URL: str = "http://localhost:5173"
 
     class Config:
         env_file = ".env"

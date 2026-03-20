@@ -34,3 +34,4 @@ async def websocket_signals(websocket: WebSocket):
     finally:
         task.cancel()
         await pubsub.unsubscribe("ws:broadcast")
+        await pubsub.close()

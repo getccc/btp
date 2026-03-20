@@ -16,8 +16,10 @@ import {
 } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, CopyOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
+import type { RuleObject } from 'antd/es/form';
 import type { WalletConfig as WalletType } from '../../services/types';
 import { getWallets, createWallet, updateWallet, deleteWallet } from '../../services/api';
+import { hasFormErrorFields } from '../../utils/errors';
 
 function truncateAddress(addr: string) {
   if (addr.length <= 12) return addr;
@@ -92,8 +94,8 @@ export default function WalletConfig() {
       }
       setModalOpen(false);
       fetchData();
-    } catch (err: any) {
-      if (err?.errorFields) return;
+    } catch (err: unknown) {
+      if (hasFormErrorFields(err)) return;
       message.error('Save failed');
     } finally {
       setSaving(false);
@@ -209,7 +211,7 @@ export default function WalletConfig() {
     },
   ];
 
-  const validateAddress = (_: any, value: string) => {
+  const validateAddress = (_rule: RuleObject, value: string) => {
     const chain = form.getFieldValue('chain');
     if (!value) return Promise.reject('Address is required');
     if (chain === 'bsc') {

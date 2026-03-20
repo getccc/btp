@@ -1,8 +1,14 @@
-type WsCallback = (data: any) => void
+type WsCallback<T = unknown> = (data: T) => void
+
+interface WsEnvelope {
+  type?: string
+  event?: string
+  data?: unknown
+}
 
 class WebSocketService {
   private ws: WebSocket | null = null
-  private listeners: Record<string, WsCallback[]> = {}
+  private listeners: Record<string, Array<WsCallback<unknown>>> = {}
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null
 
   connect() {
@@ -14,8 +20,10 @@ class WebSocketService {
 
     this.ws.onmessage = (event) => {
       try {
-        const msg = JSON.parse(event.data)
-        const callbacks = this.listeners[msg.type] || []
+        const msg = JSON.parse(event.data) as WsEnvelope
+        const eventType = typeof msg.type === 'string' ? msg.type : typeof msg.event === 'string' ? msg.event : null
+        if (!eventType) return
+        const callbacks = this.listeners[eventType] || []
         callbacks.forEach((cb) => cb(msg.data))
       } catch (e) {
         console.error('WS parse error', e)
@@ -27,9 +35,9 @@ class WebSocketService {
     }
   }
 
-  on(type: string, callback: WsCallback) {
+  on<T = unknown>(type: string, callback: WsCallback<T>) {
     if (!this.listeners[type]) this.listeners[type] = []
-    this.listeners[type].push(callback)
+    this.listeners[type].push(callback as WsCallback<unknown>)
     return () => {
       this.listeners[type] = this.listeners[type].filter((cb) => cb !== callback)
     }

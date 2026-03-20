@@ -14,8 +14,28 @@ import {
   Typography,
 } from 'antd';
 import { getSystemConfig, updateSystemConfig } from '../../services/api';
+import type { JsonObject, JsonValue } from '../../services/types';
 
 const { Text } = Typography;
+
+function asJsonObject(value: JsonValue | undefined): JsonObject {
+  return typeof value === 'object' && value !== null && !Array.isArray(value) ? value : {}
+}
+
+function getNumberField(source: JsonObject, key: string, fallback: number): number {
+  const value = source[key]
+  return typeof value === 'number' ? value : fallback
+}
+
+function getStringField(source: JsonObject, key: string, fallback: string): string {
+  const value = source[key]
+  return typeof value === 'string' ? value : fallback
+}
+
+function getStringArrayField(source: JsonObject, key: string, fallback: string[]): string[] {
+  const value = source[key]
+  return Array.isArray(value) && value.every((item) => typeof item === 'string') ? value : fallback
+}
 
 /* ── Scoring Weights ─────────────────────────────────── */
 
@@ -45,9 +65,9 @@ function ScoringWeightsCard() {
     setLoading(true);
     try {
       const cfg = await getSystemConfig('scoring_weights');
-      const v = cfg.value ?? {};
+      const v = asJsonObject(cfg.value);
       const fields: Record<string, number> = {};
-      for (const k of WEIGHT_KEYS) fields[k] = v[k] ?? 0;
+      for (const k of WEIGHT_KEYS) fields[k] = getNumberField(v, k, 0);
       form.setFieldsValue(fields);
       recalcSum();
     } catch {
@@ -125,11 +145,11 @@ function NotificationRulesCard() {
     setLoading(true);
     try {
       const cfg = await getSystemConfig('notification_rules');
-      const v = cfg.value ?? {};
+      const v = asJsonObject(cfg.value);
       form.setFieldsValue({
-        min_score: v.min_score ?? 60,
-        channels: v.channels ?? ['telegram'],
-        cooldown_minutes: v.cooldown_minutes ?? 5,
+        min_score: getNumberField(v, 'min_score', 60),
+        channels: getStringArrayField(v, 'channels', ['telegram']),
+        cooldown_minutes: getNumberField(v, 'cooldown_minutes', 5),
       });
     } catch {
       message.error('Failed to load notification rules');
@@ -189,9 +209,9 @@ function NotificationRulesCard() {
 
 const INTERVAL_KEYS = [
   { key: 'x_kol', label: 'X / KOL' },
-  { key: 'telegram', label: 'Telegram' },
+  { key: 'telegram_monitor', label: 'Telegram' },
   { key: 'onchain_bsc', label: 'On-chain BSC' },
-  { key: 'onchain_sol', label: 'On-chain Solana' },
+  { key: 'onchain_solana', label: 'On-chain Solana' },
   { key: 'price_quote', label: 'Price Quote' },
 ] as const;
 
@@ -205,9 +225,12 @@ function CollectorIntervalsCard() {
     setLoading(true);
     try {
       const cfg = await getSystemConfig('collector_intervals');
-      const v = cfg.value ?? {};
+      const v = asJsonObject(cfg.value);
       const fields: Record<string, number> = {};
-      for (const { key } of INTERVAL_KEYS) fields[key] = v[key] ?? 60;
+      for (const { key } of INTERVAL_KEYS) {
+        const legacyKey = key === 'telegram_monitor' ? 'telegram' : key === 'onchain_solana' ? 'onchain_sol' : key;
+        fields[key] = getNumberField(v, key, getNumberField(v, legacyKey, 60));
+      }
       form.setFieldsValue(fields);
     } catch {
       message.error('Failed to load collector intervals');
@@ -267,11 +290,11 @@ function LlmConfigCard() {
     setLoading(true);
     try {
       const cfg = await getSystemConfig('llm_config');
-      const v = cfg.value ?? {};
+      const v = asJsonObject(cfg.value);
       form.setFieldsValue({
-        model: v.model ?? '',
-        batch_interval: v.batch_interval ?? 30,
-        max_tokens: v.max_tokens ?? 4096,
+        model: getStringField(v, 'model', ''),
+        batch_interval: getNumberField(v, 'batch_interval', 30),
+        max_tokens: getNumberField(v, 'max_tokens', 4096),
       });
     } catch {
       message.error('Failed to load LLM config');

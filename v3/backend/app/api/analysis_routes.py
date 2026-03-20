@@ -5,7 +5,7 @@ from app.models.base import async_session_factory
 from app.models.analysis import LlmAnalysisRun, OpportunityScore
 from app.schemas.analysis import LlmAnalysisRunResponse, OpportunityScoreResponse
 
-router = APIRouter(prefix="/api", tags=["analysis"])
+router = APIRouter(prefix="/api/analysis", tags=["analysis"])
 
 
 @router.get("/scores", response_model=list[OpportunityScoreResponse])
@@ -39,7 +39,7 @@ async def get_token_score_history(token: str) -> list[OpportunityScoreResponse]:
         ]
 
 
-@router.get("/analysis/runs", response_model=list[LlmAnalysisRunResponse])
+@router.get("/runs", response_model=list[LlmAnalysisRunResponse])
 async def list_analysis_runs() -> list[LlmAnalysisRunResponse]:
     """Return the most recent LLM analysis runs."""
     async with async_session_factory() as session:

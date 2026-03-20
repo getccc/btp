@@ -1,3 +1,10 @@
+export type JsonPrimitive = string | number | boolean | null
+export type JsonValue = JsonPrimitive | JsonObject | JsonValue[]
+
+export interface JsonObject {
+  [key: string]: JsonValue
+}
+
 export interface KolConfig {
   id: number
   platform: string
@@ -37,7 +44,7 @@ export interface TelegramGroupConfig {
 
 export interface SystemConfigItem {
   key: string
-  value: any
+  value: JsonValue
   description: string | null
   updated_at: string
 }
@@ -49,7 +56,7 @@ export interface ListResponse<T> {
 
 export interface HealthResponse {
   status: string
-  db: string
+  database: string
   redis: string
   timestamp: string
 }

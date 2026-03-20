@@ -9,10 +9,10 @@ log = get_logger(__name__)
 class WsPusher:
     """Push events to WebSocket clients via Redis pub/sub."""
 
-    async def broadcast(self, event: str, data: dict) -> None:
+    async def broadcast(self, event: str, data: object) -> None:
         """Publish a message to the ws:broadcast Redis channel."""
         redis = await get_redis()
-        payload = json.dumps({"event": event, "data": data}, default=str)
+        payload = json.dumps({"type": event, "data": data}, default=str)
         await redis.publish("ws:broadcast", payload)
         log.debug("WS broadcast sent", event=event)
 

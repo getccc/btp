@@ -5,6 +5,7 @@ from sqlalchemy import select
 
 from app.collectors.base import BaseCollector
 from app.infra.api_key_pool import KeyInfo, api_key_pool
+from app.infra.realtime import broadcast_event, serialize_onchain_event
 from app.models.base import async_session_factory
 from app.models.config import WalletConfig
 from app.models.signal import OnchainEvent
@@ -153,6 +154,8 @@ class OnchainSolanaCollector(BaseCollector):
             if new_events:
                 session.add_all(new_events)
                 await session.commit()
+                for event in new_events:
+                    await broadcast_event("new_onchain", serialize_onchain_event(event))
                 log.info(
                     "solana_events_saved",
                     wallet=wallet.address,

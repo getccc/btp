@@ -7,6 +7,7 @@ from app.models.config import SystemConfig
 from app.models.analysis import OpportunityScore
 from app.models.signal import KolTweet, OnchainEvent, TelegramSignal
 from app.infra.redis_client import get_redis
+from app.infra.realtime import serialize_score
 from app.notifiers.telegram_notifier import telegram_notifier
 from app.notifiers.ws_pusher import ws_pusher
 from app.utils.logger import get_logger
@@ -68,50 +69,53 @@ class ScoringEngine:
                 return config.value
         return _DEFAULT_WEIGHTS.copy()
 
-    async def _load_notification_threshold(self) -> float:
-        """Load notification threshold from SystemConfig, default 70."""
+    async def _load_notification_rules(self) -> dict[str, object]:
+        """Load notification rules from SystemConfig, default to seed values."""
         async with async_session_factory() as session:
             result = await session.execute(
-                select(SystemConfig).where(SystemConfig.key == "notification_threshold")
+                select(SystemConfig).where(SystemConfig.key == "notification_rules")
             )
             config = result.scalar_one_or_none()
             if config and isinstance(config.value, dict):
-                return float(config.value.get("threshold", 70.0))
-        return 70.0
+                return {
+                    "min_score": float(config.value.get("min_score", 75.0)),
+                    "channels": config.value.get("channels", ["telegram", "web"]),
+                    "cooldown_minutes": float(config.value.get("cooldown_minutes", 30.0)),
+                }
+        return {
+            "min_score": 75.0,
+            "channels": ["telegram", "web"],
+            "cooldown_minutes": 30.0,
+        }
 
     async def _notify_and_broadcast(self, scores: list[OpportunityScore]) -> None:
         """Send notifications for high scores and broadcast all via WebSocket."""
         if not scores:
             return
 
-        threshold = await self._load_notification_threshold()
+        rules = await self._load_notification_rules()
+        threshold = float(rules.get("min_score", 75.0))
+        cooldown_seconds = max(int(float(rules.get("cooldown_minutes", 30.0)) * 60), 0)
+        raw_channels = rules.get("channels", ["telegram", "web"])
+        channels = {
+            str(channel).lower()
+            for channel in raw_channels
+            if isinstance(channel, str)
+        }
         redis = await get_redis()
 
         for score in scores:
             try:
-                score_data = {
-                    "token_symbol": score.token_symbol,
-                    "token_address": score.token_address,
-                    "chain": score.chain,
-                    "kol_score": score.kol_score,
-                    "smart_money_score": score.smart_money_score,
-                    "social_score": score.social_score,
-                    "onchain_score": score.onchain_score,
-                    "liquidity_score": score.liquidity_score,
-                    "crowdedness_penalty": score.crowdedness_penalty,
-                    "manipulation_penalty": score.manipulation_penalty,
-                    "total_score": score.total_score,
-                    "regime": score.regime,
-                    "direction": score.direction,
-                    "signal_snapshot": score.signal_snapshot,
-                }
-                await ws_pusher.broadcast("new_score", score_data)
+                score_data = serialize_score(score)
+                if "web" in channels:
+                    await ws_pusher.broadcast("new_score", score_data)
 
-                if score.total_score >= threshold:
+                if "telegram" in channels and score.total_score >= threshold:
                     cooldown_key = f"notify:cooldown:{score.token_symbol}"
                     if not await redis.exists(cooldown_key):
                         await telegram_notifier.send_opportunity_alert(score)
-                        await redis.setex(cooldown_key, 3600, "1")  # 1h cooldown
+                        if cooldown_seconds > 0:
+                            await redis.setex(cooldown_key, cooldown_seconds, "1")
             except Exception as exc:
                 log.error("Notification failed", symbol=score.token_symbol, error=str(exc))
 

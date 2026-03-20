@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.admin_auth import require_admin_key
 from app.models.base import get_db
 from app.models.config import KolConfig, SystemConfig, TelegramGroupConfig, WalletConfig
 from app.schemas.config import (
@@ -20,7 +21,11 @@ from app.schemas.config import (
     WalletConfigUpdate,
 )
 
-router = APIRouter(prefix="/api/config", tags=["config"])
+router = APIRouter(
+    prefix="/api/config",
+    tags=["config"],
+    dependencies=[Depends(require_admin_key)],
+)
 
 
 # ──────────────────────────── KOL CRUD ──────────────────────────────────────

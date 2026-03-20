@@ -7,6 +7,7 @@ from twikit import Client
 from app.collectors.base import BaseCollector
 from app.config import settings
 from app.infra.redis_client import get_redis
+from app.infra.realtime import broadcast_event, serialize_tweet
 from app.models.base import async_session_factory
 from app.models.config import KolConfig
 from app.models.signal import KolTweet
@@ -142,6 +143,7 @@ class XKolCollector(BaseCollector):
 
         # Persist new tweets
         async with async_session_factory() as session:
+            created_records: list[KolTweet] = []
             for tweet in reversed(new_tweets):  # oldest first
                 # Skip if already exists (unique constraint on tweet_id)
                 existing = await session.execute(
@@ -179,8 +181,12 @@ class XKolCollector(BaseCollector):
                     is_analyzed=False,
                 )
                 session.add(record)
+                created_records.append(record)
 
             await session.commit()
+
+        for record in created_records:
+            await broadcast_event("new_tweet", serialize_tweet(record))
 
         # Update Redis cursor to the newest tweet
         newest_id = str(new_tweets[0].id)

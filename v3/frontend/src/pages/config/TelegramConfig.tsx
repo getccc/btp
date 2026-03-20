@@ -21,6 +21,7 @@ import {
   updateTelegramGroup,
   deleteTelegramGroup,
 } from '../../services/api';
+import { hasFormErrorFields } from '../../utils/errors';
 
 const TYPE_COLORS: Record<string, string> = {
   group: 'blue',
@@ -83,8 +84,8 @@ export default function TelegramConfig() {
       }
       setModalOpen(false);
       fetchData();
-    } catch (err: any) {
-      if (err?.errorFields) return;
+    } catch (err: unknown) {
+      if (hasFormErrorFields(err)) return;
       message.error('Save failed');
     } finally {
       setSaving(false);

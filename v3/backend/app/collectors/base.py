@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 import asyncio
 import time
+from contextlib import suppress
 from app.infra.redis_client import get_redis
+from app.infra.realtime import broadcast_collector_update
 from app.utils.logger import get_logger
 
 log = get_logger(__name__)
@@ -23,6 +25,8 @@ class BaseCollector(ABC):
         self._running = False
         if self._task:
             self._task.cancel()
+            with suppress(asyncio.CancelledError):
+                await self._task
         log.info(f"Collector [{self.name}] stopped")
 
     async def _run_loop(self):
@@ -46,6 +50,7 @@ class BaseCollector(ABC):
             "last_run": str(time.time()),
         })
         await redis.expire(f"collector:status:{self.name}", 60)
+        await broadcast_collector_update()
 
     @abstractmethod
     async def collect(self):

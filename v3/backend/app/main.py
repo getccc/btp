@@ -1,5 +1,6 @@
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,6 +9,7 @@ from sqlalchemy import select
 from app.api.router import api_router
 from app.config import settings
 from app.infra.redis_client import close_redis, get_redis
+from app.infra.realtime import broadcast_health_update
 from app.infra.scheduler import collector_manager
 from app.models.base import async_session_factory
 from app.models.config import SystemConfig
@@ -41,9 +43,9 @@ DEFAULT_SYSTEM_CONFIGS: list[dict] = [
         "key": "collector_intervals",
         "value": {
             "x_kol": 120,
-            "telegram": 10,
+            "telegram_monitor": 10,
             "onchain_bsc": 2,
-            "onchain_sol": 2,
+            "onchain_solana": 2,
             "price_quote": 30,
         },
         "description": "Data collection intervals in seconds per collector",
@@ -110,6 +112,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception as exc:
         log.error("startup.collectors_failed", error=str(exc))
 
+    await broadcast_health_update(
+        {
+            "status": "ok",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "database": "unknown",
+            "redis": "connected",
+        }
+    )
+
     log.info("startup.complete")
     yield
 
@@ -131,6 +142,7 @@ app.add_middleware(
     allow_origins=[
         settings.FRONTEND_URL,
         "http://localhost:3000",
+        "http://localhost:5173",
     ],
     allow_credentials=True,
     allow_methods=["*"],

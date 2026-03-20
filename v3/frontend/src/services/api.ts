@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { AxiosHeaders } from 'axios'
 import type {
   KolConfig,
   WalletConfig,
@@ -9,12 +9,24 @@ import type {
   KolTweet,
   OnchainEvent,
   OpportunityScore,
+  JsonValue,
 } from './types'
 
 const api = axios.create({
   baseURL: '',
   timeout: 10000,
   headers: { 'Content-Type': 'application/json' },
+})
+
+const adminApiKey = import.meta.env.VITE_ADMIN_API_KEY?.trim()
+
+api.interceptors.request.use((config) => {
+  if (adminApiKey && config.url?.startsWith('/api/config')) {
+    const headers = AxiosHeaders.from(config.headers)
+    headers.set('X-Admin-Key', adminApiKey)
+    config.headers = headers
+  }
+  return config
 })
 
 // ── KOL ──────────────────────────────────────────────
@@ -92,7 +104,7 @@ export async function getSystemConfig(key: string): Promise<SystemConfigItem> {
   return data
 }
 
-export async function updateSystemConfig(key: string, value: any): Promise<SystemConfigItem> {
+export async function updateSystemConfig(key: string, value: JsonValue): Promise<SystemConfigItem> {
   const { data } = await api.put(`/api/config/system/${key}`, { value })
   return data
 }

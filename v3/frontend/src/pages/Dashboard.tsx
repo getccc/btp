@@ -103,8 +103,8 @@ export default function Dashboard() {
             <Tag icon={<CheckCircleOutlined />} color="success">
               Backend {health.status}
             </Tag>
-            <Tag color={health.db === 'connected' ? 'green' : 'red'}>
-              DB: {health.db}
+            <Tag color={health.database === 'connected' ? 'green' : 'red'}>
+              DB: {health.database}
             </Tag>
             <Tag color={health.redis === 'connected' ? 'green' : 'red'}>
               Redis: {health.redis}
